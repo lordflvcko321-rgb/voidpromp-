@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>voidprompts.bat — AI Avatar Packs</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #080808;
+    --red: #cc0000;
+    --red-dim: #8b0000;
+    --white: #f0f0f0;
+    --gray: #888;
+    --card: #111111;
+    --border: #1f1f1f;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(204,0,0,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,0,0,0.9) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* scanline texture */
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 4px
+    );
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px 40px;
+    gap: 28px;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--red);
+    text-transform: uppercase;
+    border: 1px solid var(--red-dim);
+    padding: 6px 14px;
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-size: clamp(52px, 14vw, 120px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    color: var(--white);
+  }
+
+  .hero h1 span {
+    color: var(--red);
+  }
+
+  .hero-sub {
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--gray);
+    max-width: 480px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-primary {
+    background: var(--red);
+    color: var(--white);
+    padding: 14px 32px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-block;
+  }
+
+  .btn-primary:hover { background: #ff0000; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    padding: 13px 32px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: inline-block;
+  }
+
+  .btn-ghost:hover { border-color: var(--gray); }
+
+  /* ─── IMAGES STRIP ─── */
+  .strip {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 2px;
+    overflow: hidden;
+    height: clamp(180px, 30vw, 320px);
+  }
+
+  .strip-img {
+    flex: 1;
+    object-fit: cover;
+    object-position: center top;
+    filter: grayscale(20%) contrast(1.1);
+    transition: flex 0.4s ease, filter 0.3s;
+  }
+
+  .strip-img:hover {
+    flex: 2.5;
+    filter: grayscale(0%) contrast(1.15);
+  }
+
+  /* ─── SECTION BASE ─── */
+  section {
+    padding: 96px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 24px;
+  }
+
+  /* ─── WHAT YOU GET ─── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2px;
+    margin-top: 48px;
+  }
+
+  .feature {
+    background: var(--card);
+    padding: 32px 28px;
+    border-top: 2px solid var(--red);
+  }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .feature h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .feature p {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ─── PRICING ─── */
+  #pricing {
+    max-width: 1100px;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2px;
+    margin-top: 48px;
+  }
+
+  .plan {
+    background: var(--card);
+    padding: 36px 28px;
+    position: relative;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .plan:hover { border-color: #333; }
+
+  .plan.featured {
+    border-color: var(--red);
+    background: #100505;
+  }
+
+  .plan.featured::before {
+    content: 'MÁS POPULAR';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--gray);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .plan-price {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .plan-price sup {
+    font-size: 20px;
+    vertical-align: super;
+    font-weight: 400;
+  }
+
+  .plan-desc {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+
+  .plan-features {
+    list-style: none;
+    margin-bottom: 32px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .plan-features li {
+    font-size: 13px;
+    color: var(--white);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 300;
+  }
+
+  .plan-features li::before {
+    content: '—';
+    color: var(--red);
+    font-family: 'Space Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .plan .btn-primary,
+  .plan .btn-ghost {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2px;
+    margin-top: 48px;
+    counter-reset: steps;
+  }
+
+  .step {
+    padding: 32px 24px;
+    background: var(--card);
+    counter-increment: steps;
+    position: relative;
+  }
+
+  .step::before {
+    content: counter(steps, decimal-leading-zero);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .step h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .step p {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ─── SOCIAL PROOF ─── */
+  .proof {
+    text-align: center;
+    padding: 64px 24px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .proof-number {
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--red);
+  }
+
+  .proof-label {
+    font-size: 14px;
+    color: var(--gray);
+    font-weight: 300;
+    margin-top: 8px;
+  }
+
+  .proof-grid {
+    display: flex;
+    justify-content: center;
+    gap: clamp(32px, 8vw, 96px);
+    flex-wrap: wrap;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* ─── FINAL CTA ─── */
+  .final-cta {
+    text-align: center;
+    padding: 120px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .final-cta::before {
+    content: 'voidprompts.bat';
+    position: absolute;
+    font-size: clamp(80px, 20vw, 200px);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    color: rgba(255,255,255,0.02);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .final-cta h2 {
+    margin-bottom: 16px;
+  }
+
+  .final-cta p {
+    color: var(--gray);
+    margin-bottom: 40px;
+    font-size: 15px;
+    font-weight: 300;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  footer p {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+  }
+
+  footer a {
+    color: var(--gray);
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+
+  footer a:hover { color: var(--white); }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 600px) {
+    .strip { height: 200px; }
+    .strip-img:hover { flex: 1.8; }
+    footer { flex-direction: column; text-align: center; }
+  }
+
+  /* ─── REDUCED MOTION ─── */
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero" style="padding:0; max-width:100%;">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <span class="tag">AI Avatar Packs</span>
+    <h1>voidprompts<span>.</span>bat</h1>
+    <p class="hero-sub">
+      Prompts. Packs. Tutorial.<br>
+      Generá fotos AI cinematográficas de cualquier personaje — sin experiencia previa.
+    </p>
+    <div class="hero-cta">
+      <a href="#pricing" class="btn-primary">Conseguir el pack</a>
+      <a href="#how" class="btn-ghost">Cómo funciona</a>
+    </div>
+  </div>
+
+  <!-- image strip -->
+  <div class="strip">
+    <!-- BMW M3 GTR photo -->
+    <img class="strip-img" src="https://i.imgur.com/placeholder1.jpg"
+         alt="shadow.exe on BMW M3 GTR"
+         style="object-position: center 20%;"
+         onerror="this.style.background='#1a0000';this.removeAttribute('src')">
+    <!-- fisheye selfie -->
+    <img class="strip-img" src="https://i.imgur.com/placeholder2.jpg"
+         alt="shadow.exe fisheye"
+         onerror="this.style.background='#0d0d0d';this.removeAttribute('src')">
+    <!-- cafe -->
+    <img class="strip-img" src="https://i.imgur.com/placeholder3.jpg"
+         alt="shadow.exe at cafe"
+         onerror="this.style.background='#0a0505';this.removeAttribute('src')">
+    <!-- street -->
+    <img class="strip-img" src="https://i.imgur.com/placeholder4.jpg"
+         alt="shadow.exe street"
+         onerror="this.style.background='#0d0d0d';this.removeAttribute('src')">
+  </div>
+</section>
+
+<!-- WHAT YOU GET -->
+<section>
+  <p class="section-label">qué incluye</p>
+  <h2>Todo para construir<br>tu persona AI.</h2>
+
+  <div class="features">
+    <div class="feature">
+      <span class="feature-icon">🖤</span>
+      <h3>Prompts Cinematográficos</h3>
+      <p>Listos para usar en Google Flow, Midjourney, Leonardo AI. Copiá, pegá, generá. Sin experiencia en prompt engineering.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">📦</span>
+      <h3>Sistema de Personaje</h3>
+      <p>Guía completa para configurar tu personaje en Google Flow — creá una persona AI consistente en todas las fotos.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🎬</span>
+      <h3>Prompts de Video</h3>
+      <p>Scripts estilo UGC para herramientas de video AI. Lifestyle, reviews de productos, reels — tu personaje en movimiento.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">📖</span>
+      <h3>Tutorial Simple</h3>
+      <p>Paso a paso desde cero. Cómo configurar tu personaje, generar fotos, editar para IG y empezar a postear en menos de una hora.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<div class="proof" style="max-width:100%;">
+  <div class="proof-grid">
+    <div>
+      <div class="proof-number">20+</div>
+      <div class="proof-label">prompts por pack</div>
+    </div>
+    <div>
+      <div class="proof-number">3</div>
+      <div class="proof-label">herramientas AI cubiertas</div>
+    </div>
+    <div>
+      <div class="proof-number">&lt;1h</div>
+      <div class="proof-label">para tu primer post</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <p class="section-label">proceso</p>
+  <h2>De cero a viral<br>en cuatro pasos.</h2>
+
+  <div class="steps">
+    <div class="step">
+      <h3>Comprá el pack</h3>
+      <p>Entrega inmediata. PDF + archivos de prompts. Sin cuenta, sin suscripción.</p>
+    </div>
+    <div class="step">
+      <h3>Creá tu personaje</h3>
+      <p>Seguí la guía para configurar tu persona AI en Google Flow o la herramienta que uses.</p>
+    </div>
+    <div class="step">
+      <h3>Generá las fotos</h3>
+      <p>Copiá los prompts. Ejecutalos. Fotos cinematográficas en minutos.</p>
+    </div>
+    <div class="step">
+      <h3>Posteá y crecé</h3>
+      <p>Usá la estrategia de IG incluida para construir tu cuenta anónima desde el día uno.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="max-width:100%; padding-left:24px; padding-right:24px;">
+  <div style="max-width:1100px; margin:0 auto;">
+    <p class="section-label">precios</p>
+    <h2>Elegí tu nivel.</h2>
+
+    <div class="pricing-grid">
+
+      <!-- STARTER -->
+      <div class="plan">
+        <p class="plan-name">Starter</p>
+        <div class="plan-price"><sup>$</sup>9</div>
+        <p class="plan-desc">Solo los prompts. Empezá a generar hoy.</p>
+        <ul class="plan-features">
+          <li>20 prompts de imagen (lifestyle + editorial)</li>
+          <li>Guía de configuración de personaje en Google Flow</li>
+          <li>Compatible con Midjourney y Leonardo AI</li>
+          <li>Entrega inmediata en PDF</li>
+        </ul>
+        <a href="https://mpago.la/TULINK" target="_blank" class="btn-ghost">Comprar — $9 USD</a>
+      </div>
+
+      <!-- PACK + TUTORIAL (FEATURED) -->
+      <div class="plan featured">
+        <p class="plan-name">Pack + Tutorial</p>
+        <div class="plan-price"><sup>$</sup>19</div>
+        <p class="plan-desc">Prompts + guía paso a paso. Todo explicado.</p>
+        <ul class="plan-features">
+          <li>20 prompts de imagen</li>
+          <li>8 scripts de prompts de video UGC</li>
+          <li>Tutorial completo: personaje, edición, estrategia IG</li>
+          <li>Instrucciones de agente para Google Flow</li>
+          <li>Calendario de contenido semana 1</li>
+          <li>Entrega inmediata en PDF</li>
+        </ul>
+        <a href="https://mpago.la/TULINK" target="_blank" class="btn-primary">Comprar — $19 USD</a>
+      </div>
+
+      <!-- FULL PACK -->
+      <div class="plan">
+        <p class="plan-name">Pack Completo</p>
+        <div class="plan-price"><sup>$</sup>29</div>
+        <p class="plan-desc">Todo lo anterior + 10 fotos generadas listas para postear.</p>
+        <ul class="plan-features">
+          <li>Todo lo del Pack + Tutorial</li>
+          <li>10 fotos AI generadas (estética voidprompts.bat)</li>
+          <li>Listas para postear, sin edición</li>
+          <li>Uso comercial incluido</li>
+          <li>Soporte prioritario por WhatsApp</li>
+        </ul>
+        <a href="https://mpago.la/TULINK" target="_blank" class="btn-primary">Comprar — $29 USD</a>
+      </div>
+
+    </div>
+
+    <p style="text-align:center; margin-top:24px; font-size:12px; color:var(--gray); font-family:'Space Mono', monospace;">
+      Pago vía Mercado Pago · Entrega inmediata · ¿Preguntas? <a href="https://wa.me/TUNUMERO" style="color:var(--red); text-decoration:none;">WhatsApp</a>
+    </p>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="final-cta">
+  <h2>Sin cara.<br>Sin límites.</h2>
+  <p>Construí tu persona AI. Empezá a postear. Vendé tus prompts.</p>
+  <a href="#pricing" class="btn-primary">Conseguir pack voidprompts.bat</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 voidprompts.bat</p>
+  <a href="https://instagram.com/voidprompts.bat" target="_blank">@voidprompts.bat</a>
+</footer>
+
+</body>
+</html>
